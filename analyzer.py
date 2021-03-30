@@ -124,23 +124,27 @@ class Parser(object):
         self._external_references[0] = self._file_index.get_id(os.path.basename(filepath[:-4]))
 
         with open(filepath) as f:
-            line = f.readline()
-            # Parse external references.
-            if line == "External References\n":
-                while True:
-                    line = f.readline()
-                    if not line or line == '\n':
-                        break
+            try:
+                line = f.readline()
 
-                    m = re.match(r"path\((\d+)\)\: \".*/(.+?)\"", line)
-                    if not m:
-                        raise Exception("Error in references")
-                    else:
-                        # Get the local file id <> global file id pair.
-                        file = m.group(2)
-                        local_index = int(m.group(1))
-                        global_index = self._file_index.get_id(file)
-                        self._external_references[local_index] = global_index
+                # Parse external references.
+                if line == "External References\n":
+                    while True:
+                        line = f.readline()
+                        if not line or line == '\n':
+                            break
+
+                        m = re.match(r"path\((\d+)\)\: \".*/(.+?)\"", line)
+                        if not m:
+                            raise Exception("Error in references")
+                        else:
+                            # Get the local file id <> global file id pair.
+                            file = m.group(2)
+                            local_index = int(m.group(1))
+                            global_index = self._file_index.get_id(file)
+                            self._external_references[local_index] = global_index
+            except UnicodeDecodeError:
+                print(f"UnicodeDecodeError on {filepath}.")
 
         with open(filepath, errors='ignore') as f:
             data = f.read()
